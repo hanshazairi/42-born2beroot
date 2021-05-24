@@ -6,6 +6,7 @@
     - [Step 1: Installation](#step-1-installation)
     - [Step 2: Adding *User* to *sudo* Group](#step-2-adding-user-to-sudo-group)
     - [Step 3: Running *root*-Privileged Commands](#step-3-running-root-privileged-commands)
+    - [Step 4: Configuring *sudo*](#step-4-configuring-sudo)
 
 ## Installation
 
@@ -87,4 +88,35 @@ You may now run *root*-privileged commands via prefix `sudo`.\
 For instance:
 ```
 $ sudo apt-get update
+```
+
+### Step 4: Configuring *sudo*
+To configure *sudo*, change directory into `/etc/sudoers.d/` and create a file via `cd /etc/sudoers.d/ && sudo touch <filename>`.
+```
+$ cd /etc/sudoers.d
+$ sudo touch <filename> #<filename> shall not end in '~' or contain '.'
+```
+To limit authentication using *sudo* to 3 attempts *(defaults to 3 anyway)* in the event of an incorrect password, add below line to the previously created file via `sudo vi <filename>`:
+```
+$ sudo vi <filename>
+<~~~>
+Defaults        passwd_tries=3
+<~~~>
+```
+To add a custom error message in the event of an incorrect password:
+```
+Defaults        badpass_message="<custom-error-message>"
+```
+###
+To log all *sudo* commands:
+```
+Defaults        logfile="/var/log/sudo"
+```
+To enable *TTY*:
+```
+Defaults        requiretty
+```
+To set *sudo* paths:
+```
+Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
 ```
