@@ -9,6 +9,9 @@
     - [Step 4: Configuring *sudo*](#step-4-configuring-sudo)
 3. [SSH](#ssh)
     - [Step 1: Installing SSH](#step-1-installing-ssh)
+    - [Step 2: Checking SSH Status](#step-2-checking-ssh-status)
+    - [Step 3: Installing UFW](#step-3-installing-ufw)
+    - [Step 4: Configuring UFW](#step-4-configuring-ufw)
 
 ## Installation
 
@@ -83,7 +86,7 @@ $
 ```
 
 ### Step 3: Running *root*-Privileged Commands
-You may now run *root*-privileged commands via prefix `sudo`.\
+From here on out, you may run *root*-privileged commands via prefix `sudo`.\
 \
 For instance:
 ```
@@ -156,35 +159,104 @@ Check SSH status via `sudo service ssh status`.
 ```
 $ sudo service ssh status
   ssh.service - OpenBSD Secure Shell Server
-   Loaded: <...>
+   <...>
    Active: active (running) <...>
    <...>
 ```
+>Alternatively, you may check SSH status via `systemctl status ssh`.
+>```
+>$ systemctl status ssh
+>  ssh.service - OpenBSD Secure Shell Server
+>   <...>
+>   Active: active (running) <...>
+>   <...>
+>```
 If status is *inactive*, switch status to *active* via `sudo service ssh start`.
 ```
 $ sudo service ssh start
 $ sudo service ssh status
   ssh.service - OpenBSD Secure Shell Server
-   Loaded: <...>
+   <...>
    Active: active (running) <...>
    <...>
 ```
-Switch status to *inactive* until next reboot via `sudo service ssh stop`.
+Switch status to *inactive* via `sudo service ssh stop`.
 ```
 $ sudo service ssh stop
 $ sudo service ssh status
   ssh.service - OpenBSD Secure Shell Server
-   Loaded: <...>
+   <...>
    Active: inactive (dead) <...>
    <...>
 ```
-Switch status to *inactive* indefinitely via `sudo systemctl disable ssh`.
+Disables automatic switch status to *active* upon reboot via `sudo systemctl disable ssh`.
 ```
 $ sudo systemctl disable ssh
+Synchronizing <...>
+Executing: <...>
 $ systemctl status ssh
   ssh.service - OpenBSD Secure Shell Server
-   Loaded: <...>
-   Active: inactive (dead)
-     Docs: man:sshd(8)
-           man:sshd_config(5)
+   Loaded: (/lib/systemd/system/ssh.service; disabled; <...>
+   <...>
+```
+Enables automatic switch status to *active* upon reboot via `sudo systemctl enable ssh`.
+```
+$ sudo systemctl enable ssh
+Synchronizing <...>
+Executing: <...>
+Created symlink <...>
+<...>
+$ systemctl status ssh
+  ssh.service - OpenBSD Secure Shell Server
+   Loaded: (/lib/systemd/system/ssh.service; enabled; <...>
+   <...>
+```
+
+### Step 3: Installing UFW
+Check whether the *ufw* package is installed on your system via `sudo ufw`.\
+\
+If *ufw* is installed:
+```
+$ sudo ufw
+ERROR: not enough args
+```
+>Alternatively, you may check whether *ufw* is already installed via `dpkg -l | grep ufw`.
+>```
+>$ dpkg -l | grep ufw
+>ii  ufw <...> program for managing a Netfilter firewall
+>```
+Otherwise:
+```
+$ sudo ufw
+sudo: ufw: command not found
+```
+
+### Step 4: Configuring UFW
+To configure *UFW*, edit the file `/etc/ssh/sshd_config` via `sudo vi /etc/ssh/sshd_config`.
+```
+$ sudo vi /etc/ssh/sshd_config
+```
+To leave only port 4242 open, replace below line
+```
+<~~~>
+#Port 22
+<~~~>
+```
+with:
+```
+<~~~>
+Port 4242
+<~~~>
+```
+To disable *SSH* login as *root* irregardless of authentication mechanism, replace below line
+```
+<~~~>
+#PermitRootLogin prohibit-password
+<~~~>
+```
+with:
+```
+<~~~>
+PermitRootLogin no
+<~~~>
 ```
