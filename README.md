@@ -12,6 +12,13 @@
     - [Step 2: Checking SSH Status](#step-2-checking-ssh-status)
     - [Step 3: Installing UFW](#step-3-installing-ufw)
     - [Step 4: Configuring UFW](#step-4-configuring-ufw)
+    - [Step 5: Connecting to Server via SSH (LAN)](#step-5-connecting-to-server-via-ssh-lan)
+4. [Users](#users)
+    - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
+       - [Password Age](#password-age)
+       - [Password Strength](#password-strength)
+    - [Step 2: Creating A New User](#step-2-creating-a-new-user)
+    - [Step 3: Creating A New Group](#step-3-creating-a-new-group)
 
 ## Installation
 
@@ -149,7 +156,7 @@ $ ssh
 ### Step 1: Installing SSH
 Install *openssh-server* via `sudo apt install openssh-server`.
 ```
-$ sudo apt install open ssh-server
+$ sudo apt install openssh-server
 Reading package lists... Done
 <...>
 ```
@@ -189,7 +196,7 @@ $ sudo service ssh status
    Active: inactive (dead) <...>
    <...>
 ```
-Disables automatic switch status to *active* upon reboot via `sudo systemctl disable ssh`.
+Disable automatic switch status to *active* upon reboot via `sudo systemctl disable ssh`.
 ```
 $ sudo systemctl disable ssh
 Synchronizing <...>
@@ -199,7 +206,7 @@ $ systemctl status ssh
    Loaded: (/lib/systemd/system/ssh.service; disabled; <...>
    <...>
 ```
-Enables automatic switch status to *active* upon reboot via `sudo systemctl enable ssh`.
+Enable automatic switch status to *active* upon reboot via `sudo systemctl enable ssh`.
 ```
 $ sudo systemctl enable ssh
 Synchronizing <...>
@@ -232,31 +239,141 @@ sudo: ufw: command not found
 ```
 
 ### Step 4: Configuring UFW
-To configure *UFW*, edit the file `/etc/ssh/sshd_config` via `sudo vi /etc/ssh/sshd_config`.
+To configure *UFW*, edit the file `/etc/ssh/sshd_config` via `sudo vi /etc/ssh/sshd_config`, specifically the below lines:
 ```
 $ sudo vi /etc/ssh/sshd_config
-```
-To leave only port 4242 open, replace below line
-```
 <~~~>
 #Port 22
-<~~~>
-```
-with:
-```
-<~~~>
-Port 4242
-<~~~>
-```
-To disable *SSH* login as *root* irregardless of authentication mechanism, replace below line
-```
-<~~~>
 #PermitRootLogin prohibit-password
 <~~~>
 ```
+To leave only port 4242 open, replace below line
+```
+#Port 22
+```
 with:
 ```
-<~~~>
+Port 4242
+```
+To disable *SSH* login as *root* irregardless of authentication mechanism, replace below line
+```
+#PermitRootLogin prohibit-password
+```
+with:
+```
 PermitRootLogin no
+```
+
+### Step 5: Connecting to Server via SSH (LAN)
+On your virtual machine, check internal IP address via `hostname -I`.
+```shell
+$ hostname -I
+192.168.56.3
+```
+On your host machine, connect to your virtual machine via SSH using port 4242 via `ssh <username>@<ip-address> -p 4242`.
+```
+$ ssh <username>@<ip-address> -p 4242
+<username>@<ip-address>'s password:
+Linux <...>
+<...>
+Last login: <...>
+$ 
+```
+You may terminate SSH session at any time via `logout`.
+```
+$ logout
+Connection to <ip-address> closed.
+```
+>Alternatively, you may terminate SSH session via `exit`.
+>```
+>$ exit
+>logout
+>Connection to <ip-address> closed.
+>```
+
+## Users
+
+### Step 1: Setting Up A Strong Password Policy
+
+#### Password Age
+Firstly, to set up policies in relation to password age, edit the file `/etc/login.defs` via `sudo vi /etc/login.defs`, specifically the below lines:
+```
+$ sudo vi /etc/login.defs
 <~~~>
+PASS_MAX_DAYS   99999
+PASS_MIN_DAYS   0
+PASS_WARN_AGE   7
+<~~~>
+```
+To set password to expire every 30 days, replace below line
+```
+PASS_MAX_DAYS   99999
+```
+with:
+```
+PASS_MAX_DAYS   30
+```
+To set minimum number of days between password changes to 2 days, replace below line
+```
+PASS_MIN_DAYS   0
+```
+with:
+```
+PASS_MIN_DAYS   2
+```
+To send *User* a warning message 7 days *(defaults to 7 anyway)* before password expiry, replace below line
+```
+PASS_WARN_AGE   7
+```
+with:
+```
+PASS_WARN_AGE   7
+```
+
+#### Password Strength
+Secondly, to set up policies in relation to password strength, install the *libpam-pwquality* package.
+```
+$ sudo apt install libpam-pwquality
+Reading package lists... Done
+<...>
+```
+Verify whether the package was successfully installed via `dpkg -l | grep libpam-pwquality`.
+```
+$ dpkg -l | grep libpam-pwquality
+ii  libpam-pwquality:amd64 <...> PAM module to check password strength
+```
+Edit the file `/etc/pam.d/common-password` via `sudo vi /etc/pam.d/common-password`, specifically the below line:
+```
+$ sudo vi /etc/pam.d/common-password
+<~~~>
+password        requisite                       pam_pwquality.so retry=3
+<~~~>
+```
+To set password minimum length to 10 characters, add below option to the above line.
+```
+minlen=10
+```
+To require password to contain at least an uppercase character and a numeric character:
+```
+ucredit=-1 dcredit=-1
+```
+To set a maximum of 3 consecutive identical characters:
+```
+maxrepeat=3
+```
+To reject the password if it contains `<username>` in some form:
+```
+reject_username
+```
+To set the number of changes required in the new password from the old password to 7:
+```
+difok=7
+```
+To implement the same policy on *root*:
+```
+enforce_for_root
+```
+Finally, it should look like the below:
+```
+password        requisite                       pam_pwquality.so retry=3 minlen=10 ucredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root
 ```
