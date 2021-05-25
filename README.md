@@ -2,7 +2,7 @@
 
 ## Table of Contents
 1. [Installation](#installation)
-2. [sudo](#sudo)
+2. [*sudo*](#sudo)
     - [Step 1: Installing *sudo*](#step-1-installing-sudo)
     - [Step 2: Adding *User* to *sudo* Group](#step-2-adding-user-to-sudo-group)
     - [Step 3: Running *root*-Privileged Commands](#step-3-running-root-privileged-commands)
@@ -12,7 +12,7 @@
     - [Step 2: Checking SSH Status](#step-2-checking-ssh-status)
     - [Step 3: Installing UFW](#step-3-installing-ufw)
     - [Step 4: Configuring UFW](#step-4-configuring-ufw)
-    - [Step 5: Connecting to Server via SSH (LAN)](#step-5-connecting-to-server-via-ssh-lan)
+    - [Step 5: Connecting to Server via SSH *(LAN)*](#step-5-connecting-to-server-via-ssh-lan)
 4. [Users](#users)
     - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
@@ -23,24 +23,7 @@
 ## Installation
 
 ## *sudo*
-Check whether the *sudo* package is installed on your system via `sudo`.\
-\
-If *sudo* is installed:
-```
-$ sudo
-usage: sudo -h | -K | -k | -V
-<...>
-```
->Alternatively, you may check whether *sudo* is already installed via `dpkg -l | grep sudo`.
->```
->$ dpkg -l | grep sudo
->ii  sudo <...> Provide limited super user privileges to specific users
->```
-Otherwise:
-```
-$ sudo
--bash: sudo: command not found
-```
+
 ### Step 1: Installing *sudo*
 Switch to the *root* user and its environment via `su -`.
 ```
@@ -54,6 +37,11 @@ Install *sudo* via `apt install sudo`.
 Reading package lists... Done
 <...>
 ```
+Verify whether *sudo* was successfully installed via `dpkg -l | grep sudo`.
+```
+# dpkg -l | grep sudo
+ii  sudo <...> Provide limited super user privileges to specific users
+```
 
 ### Step 2: Adding *User* to *sudo* Group
 Add *User* to *sudo* group via `usermod -aG sudo <username>`.
@@ -64,23 +52,9 @@ Add *User* to *sudo* group via `usermod -aG sudo <username>`.
 >```
 ># adduser <username> sudo
 >```
-Switch back to *User* from *root* via `logout` and verify whether *User* has been added to *sudo* group via `sudo -v`.
+`reboot` for changes to take effect, then log in and run `sudo -v`.
 ```
-# logout
-$ sudo -v
-Password:
-```
->Alternatively, you may verify whether User has been added to *sudo* group via `getent group sudo`.
->```
->$ getent group sudo
->sudo:x:27:<username>
->```
-If the above fails, logout from *User* via `logout`, log back in, then run `sudo -v` again.
-```
-# logout
-$ sudo -v
-Sorry, user <username> may not run sudo on <hostname>.
-$ logout
+# reboot
 <--->
 Debian GNU/Linux 10 <hostname> tty1
 
@@ -91,6 +65,11 @@ $ sudo -v
 [sudo] password for <username>:
 $
 ```
+>Alternatively, you may verify whether User has been added to *sudo* group via `getent group sudo`.
+>```
+>$ getent group sudo
+>sudo:x:27:<username>
+>```
 
 ### Step 3: Running *root*-Privileged Commands
 From here on out, you may run *root*-privileged commands via prefix `sudo`.\
@@ -118,11 +97,14 @@ To add a custom error message in the event of an incorrect password:
 Defaults        badpass_message="<custom-error-message>"
 ```
 ###
-To log all *sudo* commands to `/var/log/sudo`:
+To log all *sudo* commands to `/var/log/sudo/`:
 ```
-Defaults        logfile="/var/log/sudo"
+$ (cd /var/log && mkdir sudo)d
+<~~~>
+Defaults        logfile="/var/log/sudo/<filename>"
+<~~~>
 ```
-To enable *TTY*:
+To require *TTY*:
 ```
 Defaults        requiretty
 ```
@@ -132,26 +114,6 @@ Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/
 ```
 
 ## SSH
-Check whether the *openssh-server* package is installed on your system via `ssh`.\
-\
-If *openssh-server* is installed:
-```
-$ ssh
-usage: ssh <...>
-<...>
-```
->Alternatively, you may check whether *openssh-server* is already installed via `dpkg -l | grep ssh`.
->```
->$ dpkg -l | grep ssh
->ii  openssh-client <...> secure shell (SSH) client, for secure access to remote machines
->ii  openssh-server <...> secure shell (SSH) server, for secure access from remote machines
->ii  openssh-client <...> secure shell (SSH) sftp server module, for SFTP access from remote machines
->```
-Otherwise:
-```
-$ ssh
--bash: ssh: command not found
-```
 
 ### Step 1: Installing SSH
 Install *openssh-server* via `sudo apt install openssh-server`.
@@ -159,6 +121,13 @@ Install *openssh-server* via `sudo apt install openssh-server`.
 $ sudo apt install openssh-server
 Reading package lists... Done
 <...>
+```
+Verify whether *openssh-server* was successfully installed via `dpkg -l | grep ssh`.
+```
+$ dpkg -l | grep ssh
+ii  openssh-client <...> secure shell (SSH) client, for secure access to remote machines
+ii  openssh-server <...> secure shell (SSH) server, for secure access from remote machines
+ii  openssh-client <...> secure shell (SSH) sftp server module, for SFTP access from remote machines
 ```
 
 ### Step 2: Checking SSH Status
@@ -220,22 +189,16 @@ $ systemctl status ssh
 ```
 
 ### Step 3: Installing UFW
-Check whether the *ufw* package is installed on your system via `sudo ufw`.\
-\
-If *ufw* is installed:
+Install *ufw* via `sudo apt install ufw`.
 ```
-$ sudo ufw
-ERROR: not enough args
+$ sudo apt install ufw
+Reading package lists... Done
+<...>
 ```
->Alternatively, you may check whether *ufw* is already installed via `dpkg -l | grep ufw`.
->```
->$ dpkg -l | grep ufw
->ii  ufw <...> program for managing a Netfilter firewall
->```
-Otherwise:
+Verify whether *ufw* was successfully installed via `dpkg -l | grep ufw`.
 ```
-$ sudo ufw
-sudo: ufw: command not found
+$ dpkg -l | grep ufw
+ii  ufw <...> program for managing a Netfilter firewall
 ```
 
 ### Step 4: Configuring UFW
@@ -337,7 +300,7 @@ $ sudo apt install libpam-pwquality
 Reading package lists... Done
 <...>
 ```
-Verify whether the package was successfully installed via `dpkg -l | grep libpam-pwquality`.
+Verify whether *libpam-pwquality* was successfully installed via `dpkg -l | grep libpam-pwquality`.
 ```
 $ dpkg -l | grep libpam-pwquality
 ii  libpam-pwquality:amd64 <...> PAM module to check password strength
