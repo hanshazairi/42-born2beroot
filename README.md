@@ -10,9 +10,11 @@
 3. [SSH](#ssh)
     - [Step 1: Installing SSH](#step-1-installing-ssh)
     - [Step 2: Checking SSH Status](#step-2-checking-ssh-status)
-    - [Step 3: Installing UFW](#step-3-installing-ufw)
-    - [Step 4: Configuring UFW](#step-4-configuring-ufw)
-    - [Step 5: Connecting to Server via SSH *(LAN)*](#step-5-connecting-to-server-via-ssh-lan)
+    - [Step 3: Configuring SSH](#step-3-configuring-ssh)
+    - [Step 4: Installing UFW](#step-4-installing-ufw)
+    - [Step 5: Checking UFW Status](#step-5-checking-ufw-status)
+    - [Step 6: Configuring UFW](#step-6-configuring-ufw)
+    - [Step 7: Connecting to Server via SSH *(LAN)*](#step-7-connecting-to-server-via-ssh-lan)
 4. [Users](#users)
     - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
@@ -76,7 +78,7 @@ From here on out, run *root*-privileged commands via prefix `sudo`.\
 \
 For instance:
 ```
-$ sudo apt-get update
+$ sudo apt update
 ```
 
 ### Step 4: Configuring *sudo*
@@ -147,16 +149,7 @@ $ sudo service ssh status
 >   Active: active (running) <...>
 >   <...>
 >```
-If status is *inactive*, switch status to *active* via `sudo service ssh start`.
-```
-$ sudo service ssh start
-$ sudo service ssh status
-  ssh.service - OpenBSD Secure Shell Server
-   <...>
-   Active: active (running) <...>
-   <...>
-```
-Switch status to *inactive* via `sudo service ssh stop`.
+If you must, switch status to *inactive* via `sudo service ssh stop`.
 ```
 $ sudo service ssh stop
 $ sudo service ssh status
@@ -165,7 +158,16 @@ $ sudo service ssh status
    Active: inactive (dead) <...>
    <...>
 ```
-Disable automatic switch status to *active* upon reboot via `sudo systemctl disable ssh`.
+Switch status to *active* again via `sudo service ssh start`.
+```
+$ sudo service ssh start
+$ sudo service ssh status
+  ssh.service - OpenBSD Secure Shell Server
+   <...>
+   Active: active (running) <...>
+   <...>
+```
+If you must, disable SSH via `sudo systemctl disable ssh`.
 ```
 $ sudo systemctl disable ssh
 Synchronizing <...>
@@ -175,7 +177,7 @@ $ systemctl status ssh
    Loaded: (/lib/systemd/system/ssh.service; disabled; <...>
    <...>
 ```
-Enable automatic switch status to *active* upon reboot via `sudo systemctl enable ssh`.
+Enable SSH again via `sudo systemctl enable ssh`.
 ```
 $ sudo systemctl enable ssh
 Synchronizing <...>
@@ -188,7 +190,20 @@ $ systemctl status ssh
    <...>
 ```
 
-### Step 3: Installing UFW
+### Step 3: Configuring SSH
+To configure SSH, edit the file `/etc/login.defs` via `sudo vi /etc/login.defs`, specifically the below line:
+```
+$ sudo vi /etc/ssh/sshd_config
+<~~~>
+#PermitRootLogin prohibit-password
+<~~~>
+```
+To disable *SSH* login as *root* irregardless of authentication mechanism, replace the above with:
+```
+PermitRootLogin no
+```
+
+### Step 4: Installing UFW
 Install *ufw* via `sudo apt install ufw`.
 ```
 $ sudo apt install ufw
@@ -201,39 +216,39 @@ $ dpkg -l | grep ufw
 ii  ufw <...> program for managing a Netfilter firewall
 ```
 
-### Step 4: Configuring UFW
-To configure *UFW*, edit the file `/etc/ssh/sshd_config` via `sudo vi /etc/ssh/sshd_config`, specifically the below lines:
+### Step 5: Checking UFW Status
+Check UFW status via `sudo ufw status verbose`.
 ```
-$ sudo vi /etc/ssh/sshd_config
-<~~~>
-#Port 22
-#PermitRootLogin prohibit-password
-<~~~>
-```
-To leave only port 4242 open, replace below line
-```
-#Port 22
-```
-with:
-```
-Port 4242
-```
-To disable *SSH* login as *root* irregardless of authentication mechanism, replace below line
-```
-#PermitRootLogin prohibit-password
-```
-with:
-```
-PermitRootLogin no
+$ sudo ufw status verbose
+Status: inactive
 ```
 
-### Step 5: Connecting to Server via SSH (LAN)
+### Step 6: Configuring UFW
+Enable the Firewall via `sudo ufw enable`.
+```
+$ sudo ufw enable
+Firewall is active and enabled on system startup
+```
+Deny all incoming connections by default via `sudo ufw default deny incoming`.
+```
+$ sudo ufw default deny incoming
+Default incoming policy changed to 'deny'
+(be sure to update your rules accordingly)
+```
+Allow incoming connections using Port 4242 via `sudo ufw allow 4242`.
+```
+$ sudo ufw allow 4242
+Rule added
+Rule added (v6)
+```
+
+### Step 7: Connecting to Server via SSH (LAN)
 On your virtual machine, check internal IP address via `hostname -I`.
 ```shell
 $ hostname -I
 192.168.56.3
 ```
-On your host machine, connect to your virtual machine via SSH using port 4242 via `ssh <username>@<ip-address> -p 4242`.
+On your host machine, connect to your virtual machine via SSH using Port 4242 via `ssh <username>@<ip-address> -p 4242`.
 ```
 $ ssh <username>@<ip-address> -p 4242
 <username>@<ip-address>'s password:
