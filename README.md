@@ -4,7 +4,7 @@
 1. [Installation](#installation)
 2. [*sudo*](#sudo)
     - [Step 1: Installing *sudo*](#step-1-installing-sudo)
-    - [Step 2: Adding *User* to *sudo* Group](#step-2-adding-user-to-sudo-group)
+    - [Step 2: Adding *User* to *sudo Group*](#step-2-adding-user-to-sudo-group)
     - [Step 3: Running *root*-Privileged Commands](#step-3-running-root-privileged-commands)
     - [Step 4: Configuring *sudo*](#step-4-configuring-sudo)
 3. [SSH](#ssh)
@@ -17,8 +17,8 @@
     - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
        - [Password Strength](#password-strength)
-    - [Step 2: Creating A New User](#step-2-creating-a-new-user)
-    - [Step 3: Creating A New Group](#step-3-creating-a-new-group)
+    - [Step 2: Creating A New *User*](#step-2-creating-a-new-user)
+    - [Step 3: Creating A New *Group*](#step-3-creating-a-new-group)
 
 ## Installation
 
@@ -43,14 +43,14 @@ Verify whether *sudo* was successfully installed via `dpkg -l | grep sudo`.
 ii  sudo <...> Provide limited super user privileges to specific users
 ```
 
-### Step 2: Adding *User* to *sudo* Group
-Add *User* to *sudo* group via `usermod -aG sudo <username>`.
+### Step 2: Adding *User* to *sudo Group*
+Add *User* to *sudo Group* via `adduser <username> sudo`.
 ```
-# usermod -aG sudo <username>
+# adduser <username> sudo
 ```
->Alternatively, you may add *User* to *sudo* group via `adduser <username> sudo`.
+>Alternatively, add *User* to *sudo Group* via `usermod -aG sudo <username>`.
 >```
-># adduser <username> sudo
+># usermod -aG sudo <username>
 >```
 `reboot` for changes to take effect, then log in and run `sudo -v`.
 ```
@@ -65,14 +65,14 @@ $ sudo -v
 [sudo] password for <username>:
 $
 ```
->Alternatively, you may verify whether User has been added to *sudo* group via `getent group sudo`.
+>Alternatively, verify whether *User* was successfully added to *sudo Group* via `getent group sudo`.
 >```
 >$ getent group sudo
 >sudo:x:27:<username>
 >```
 
 ### Step 3: Running *root*-Privileged Commands
-From here on out, you may run *root*-privileged commands via prefix `sudo`.\
+From here on out, run *root*-privileged commands via prefix `sudo`.\
 \
 For instance:
 ```
@@ -139,7 +139,7 @@ $ sudo service ssh status
    Active: active (running) <...>
    <...>
 ```
->Alternatively, you may check SSH status via `systemctl status ssh`.
+>Alternatively, check SSH status via `systemctl status ssh`.
 >```
 >$ systemctl status ssh
 >  ssh.service - OpenBSD Secure Shell Server
@@ -242,12 +242,12 @@ Linux <...>
 Last login: <...>
 $ 
 ```
-You may terminate SSH session at any time via `logout`.
+Terminate SSH session at any time via `logout`.
 ```
 $ logout
 Connection to <ip-address> closed.
 ```
->Alternatively, you may terminate SSH session via `exit`.
+>Alternatively, terminate SSH session via `exit`.
 >```
 >$ exit
 >logout
@@ -339,4 +339,59 @@ enforce_for_root
 Finally, it should look like the below:
 ```
 password        requisite                       pam_pwquality.so retry=3 minlen=10 ucredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root
+```
+
+### Step 2: Creating A New User
+Create a new *User* via `sudo useradd <username>`.
+```
+$ sudo useradd <username>
+```
+Give the newly-created *User* a password via `sudo passwd <username>`.
+```
+$ sudo passwd <olivia>
+New password:
+Retype new password:
+passwd: password updated successfully
+```
+Check newly-created *User*'s password expiry information via `sudo chage -l <username>`.
+```
+$ sudo chage -l <username>
+Last password change					: <last-password-change-date>
+Password expires					: <last-password-change-date + PASS_MAX_DAYS>
+Password inactive					: never
+Account expires						: never
+Minimum number of days between password change		: <PASS_MIN_DAYS>
+Maximum number of days between password change		: <PASS_MAX_DAYS>
+Number of days of warning before password expires	: <PASS_WARN_AGE>
+```
+If you must, delete a *User* via `sudo userdel <username>`.
+```
+$ sudo userdel <username>
+```
+
+### Step 3: Creating A New Group
+Create a new *Group* via `sudo groupadd <groupname>`.
+```
+$ sudo groupadd <groupname>
+```
+Add *User* to *Group* via `sudo adduser <username> <groupname>`.
+```
+$ sudo adduser <username> <groupname>
+```
+>Alternatively, add *User* to *Group* via `sudo usermod -aG <groupname> <username>`.
+>```
+>$ sudo usermod -aG <groupname> <username>
+>```
+Verify whether *User* was successfully added to *Group* via `getent group <groupname>`.
+```
+$ getent group <groupname>
+<groupname>:x:1001:<username>
+```
+If you must, remove a *User* from a *Group* via `sudo deluser <username> <groupname>`.
+```
+$ sudo deluser <username> <groupname>
+```
+Again, if you must, delete a *Group* via `sudo groupdel <groupname>`.
+```
+$ sudo groupdel <groupname>
 ```
