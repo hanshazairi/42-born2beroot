@@ -14,7 +14,7 @@
     - [Step 4: Installing UFW](#step-4-installing-ufw)
     - [Step 5: Checking UFW Status](#step-5-checking-ufw-status)
     - [Step 6: Configuring UFW](#step-6-configuring-ufw)
-    - [Step 7: Connecting to Server via SSH *(LAN)*](#step-7-connecting-to-server-via-ssh-lan)
+    - [Step 7: Connecting to Server via SSH](#step-7-connecting-to-server-via-ssh)
 4. [Users](#users)
     - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
@@ -82,7 +82,7 @@ $ sudo apt update
 ```
 
 ### Step 4: Configuring *sudo*
-To configure *sudo*, change directory into `/etc/sudoers.d/` and create a file via `cd /etc/sudoers.d/ && sudo touch <filename>`.
+To configure *sudo*, change directory into `/etc/sudoers.d/` and create a file of any filename via `cd /etc/sudoers.d/ && sudo touch <filename>`.
 ```
 $ cd /etc/sudoers.d
 $ sudo touch <filename> #<filename> shall not end in '~' or contain '.'
@@ -99,9 +99,9 @@ To add a custom error message in the event of an incorrect password:
 Defaults        badpass_message="<custom-error-message>"
 ```
 ###
-To log all *sudo* commands to `/var/log/sudo/`:
+To log all *sudo* commands to `/var/log/sudo/<filename>`:
 ```
-$ (cd /var/log && mkdir sudo)d
+$ (cd /var/log && mkdir sudo)
 <~~~>
 Defaults        logfile="/var/log/sudo/<filename>"
 <~~~>
@@ -112,6 +112,14 @@ Defaults        requiretty
 ```
 To set *sudo* paths to `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin`:
 ```
+Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+```
+Finally, it should look like the below:
+```
+Defaults        passwd_tries=3
+Defaults        badpass_message="<custom-error-message>"
+Defaults        logfile="/var/log/sudo/<filename>"
+Defaults        requiretty
 Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
 ```
 
@@ -149,7 +157,7 @@ $ sudo service ssh status
 >   Active: active (running) <...>
 >   <...>
 >```
-If you must, switch status to *inactive* via `sudo service ssh stop`.
+If you must, switch SSH status to *inactive* via `sudo service ssh stop`.
 ```
 $ sudo service ssh stop
 $ sudo service ssh status
@@ -158,7 +166,7 @@ $ sudo service ssh status
    Active: inactive (dead) <...>
    <...>
 ```
-Switch status to *active* again via `sudo service ssh start`.
+Switch SSH status to *active* again via `sudo service ssh start`.
 ```
 $ sudo service ssh start
 $ sudo service ssh status
@@ -217,9 +225,9 @@ ii  ufw <...> program for managing a Netfilter firewall
 ```
 
 ### Step 5: Checking UFW Status
-Check UFW status via `sudo ufw status verbose`.
+Check UFW status via `sudo ufw status`.
 ```
-$ sudo ufw status verbose
+$ sudo ufw status
 Status: inactive
 ```
 
@@ -242,11 +250,11 @@ Rule added
 Rule added (v6)
 ```
 
-### Step 7: Connecting to Server via SSH (LAN)
+### Step 7: Connecting to Server via SSH
 On your virtual machine, check internal IP address via `hostname -I`.
 ```shell
 $ hostname -I
-192.168.56.3
+10.0.2.15
 ```
 On your host machine, connect to your virtual machine via SSH using Port 4242 via `ssh <username>@<ip-address> -p 4242`.
 ```
@@ -299,11 +307,7 @@ with:
 ```
 PASS_MIN_DAYS   2
 ```
-To send *User* a warning message 7 days *(defaults to 7 anyway)* before password expiry, replace below line
-```
-PASS_WARN_AGE   7
-```
-with:
+To send *User* a warning message 7 days *(defaults to 7 anyway)* before password expiry, keep below line as is.
 ```
 PASS_WARN_AGE   7
 ```
@@ -363,7 +367,7 @@ $ sudo useradd <username>
 ```
 Give the newly-created *User* a password via `sudo passwd <username>`.
 ```
-$ sudo passwd <olivia>
+$ sudo passwd <username>
 New password:
 Retype new password:
 passwd: password updated successfully
