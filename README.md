@@ -203,10 +203,23 @@ To configure SSH, edit the file `/etc/login.defs` via `sudo vi /etc/login.defs`,
 ```
 $ sudo vi /etc/ssh/sshd_config
 <~~~>
+#Port 22
 #PermitRootLogin prohibit-password
 <~~~>
 ```
-To disable *SSH* login as *root* irregardless of authentication mechanism, replace the above with:
+To set up SSH using Port 4242, replace below line:
+```
+#Port 22
+```
+with:
+```
+Port 4242
+```
+To disable SSH login as *root* irregardless of authentication mechanism, replace below line
+```
+#PermitRootLogin prohibit-password
+```
+with:
 ```
 PermitRootLogin no
 ```
