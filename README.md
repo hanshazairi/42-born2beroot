@@ -356,9 +356,11 @@ Number of days of warning before password expires	: <PASS_WARN_AGE>
 ```
 
 ### Step 3: Creating A New Group
-Create a new *user 42 Group* via `sudo groupadd user42`.
+Create a new *user42 Group* via `sudo addgroup user42`.
 ```
-$ sudo groupadd user42
+$ sudo addgroup user42
+Adding group `user42' (GID 1001) ...
+Done
 ```
 Add *User* to *user42 Group* via `sudo adduser <username> user42`.
 ```
