@@ -19,6 +19,12 @@
        - [Password Strength](#password-strength)
     - [Step 2: Creating A New *User*](#step-2-creating-a-new-user)
     - [Step 3: Creating A New *Group*](#step-3-creating-a-new-group)
+5. [Bonus](#bonus)
+    1. [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#linux-lighttpd-mariadb-php-llmp-stack)
+        - [Step 1: Installing Lighttpd](#step-1-installing-lighttpd)
+        - [Step 2: Installing MariaDB](#step-2-installing-mariadb)
+        - [Step 3: Installing PHP](#step-3-installing-php)
+        - [Step 4: Installing WordPress](#step-4-installing-wordpress)
 
 ## Installation
 At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch my *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
@@ -374,4 +380,110 @@ Verify whether *User* was successfully added to *user42 Group* via `getent group
 ```
 $ getent group user42
 user42:x:1001:<username>
+```
+
+## Bonus
+
+### Linux Lighttpd MariaDB PHP *(LLMP)* Stack
+
+#### Step 1: Installing Lighttpd
+Install *lighttpd* via `sudo apt install lighttpd`.
+```
+$ sudo apt install lighttpd
+Reading package lists... Done
+<...>
+```
+Verify whether *lighttpd* was successfully installed via `dpkg -l | grep lighttpd`.
+```
+$ dpkg -l | grep lighttpd
+ii  lighttpd <...> fast webserver with minimal memory footprint
+ii  lighttpd-modules-ldap <...> LDAP-based modules for lighttpd
+ii  lighttpd-modules-mysql <...> MYSQL-based modules for lighttpd
+```
+
+#### Step 2: Installing MariaDB
+Install *mariadb-server* via `sudo apt install mariadb-server`.
+```
+$ sudo apt install mariadb-server
+Reading package lists... Done
+<...>
+```
+Verify whether *mariadb-server* was successfully installed via `dpkg -l | grep mariadb-server`.
+```
+$ dpkg -l | grep mariadb-server
+ii  libmariadb3:amd64 <...> MariaDB Database client library
+ii  mariadb-client-10.3 <...> MariaDB Database client binaries
+ii  mariadb-client-core-10.3 <...> MariaDB Database core client binaries
+ii  mariadb-common <...> MariaDB common metapackage
+ii  mariadb-server <...> MariaDB database server (metapackage depending on the latest version)
+ii  mariadb-server-10.3 <...> MariaDB database server binaries
+ii  mariadb-server-core-10.3 <...> MariaDB database core server files
+```
+Start interactive script to remove insecure default settings via `sudo mysql_secure_installation`.
+```
+<...>
+Enter current password for root (enter for none): #Just press enter (do not confuse database root with system root)
+<...>
+Set root password? [Y/n] n
+<...>
+Remove anonymous users? [Y/n] Y
+<...>
+Disallow root login remotely? [Y/n] Y
+<...>
+Remove test database and access to it? [Y/n] Y
+<...>
+Reload privilege tables now? [Y/n] Y
+<...>
+Thanks for using MariaDB!
+```
+Log in to the MariaDB console via `sudo mariadb`.
+```
+$ sudo mariadb
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+<...>
+MariaDB [(none)]>
+```
+Create a new database via:
+```
+MariaDB [(none)]> CREATE DATABASE <database-name>;
+Query OK, 1 row affected (0.000 sec)
+```
+Create a new *User* and grant them full privileges on the above-created *Database* via:
+```
+MariaDB [(none)]> GRANT ALL ON <database-name>.* TO '<username>'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;
+Query OK, 0 rows affected (0.000 sec)
+```
+Flush the privileges via:
+```
+MariaDB [(none)]> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.000 sec)
+```
+Exit the MariaDB shell via:
+```
+MariaDB [(none)]> exit
+Bye
+```
+Verify whether *User* was successfully created by logging in to the MariaDB console via:
+```
+$ mariadb -u <username> -p
+Enter password:
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+<...>
+MariaDB [(none)]>
+```
+Confirm whether *User* has access to the `<database-name>` *Database* via:
+```
+MariaDB [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| <database-name>    |
+| information_schema |
++--------------------+
+2 rows in set (0.000 sec)
+```
+Exit the MariaDB shell via:
+```
+MariaDB [(none)]> exit
+Bye
 ```
