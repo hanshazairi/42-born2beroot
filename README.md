@@ -9,12 +9,10 @@
     - [Step 4: Configuring *sudo*](#step-4-configuring-sudo)
 3. [SSH](#ssh)
     - [Step 1: Installing SSH](#step-1-installing-ssh)
-    - [Step 2: Checking SSH Status](#step-2-checking-ssh-status)
-    - [Step 3: Configuring SSH](#step-3-configuring-ssh)
-    - [Step 4: Installing UFW](#step-4-installing-ufw)
-    - [Step 5: Checking UFW Status](#step-5-checking-ufw-status)
-    - [Step 6: Configuring UFW](#step-6-configuring-ufw)
-    - [Step 7: Connecting to Server via SSH](#step-7-connecting-to-server-via-ssh)
+    - [Step 2: Configuring SSH](#step-2-configuring-ssh)
+    - [Step 3: Installing UFW](#step-3-installing-ufw)
+    - [Step 4: Configuring UFW](#step-4-configuring-ufw)
+    - [Step 5: Connecting to Server via SSH](#step-5-connecting-to-server-via-ssh)
 4. [Users](#users)
     - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
@@ -23,11 +21,12 @@
     - [Step 3: Creating A New *Group*](#step-3-creating-a-new-group)
 
 ## Installation
+At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch my *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
 
 ## *sudo*
 
 ### Step 1: Installing *sudo*
-Switch to the *root* user and its environment via `su -`.
+Switch to *root* and its environment via `su -`.
 ```
 $ su -
 Password:
@@ -82,17 +81,13 @@ $ sudo apt update
 ```
 
 ### Step 4: Configuring *sudo*
-To configure *sudo*, change directory into `/etc/sudoers.d/` and create a file of any filename via `cd /etc/sudoers.d/ && sudo touch <filename>`.
+To configure *sudo*, first create a new file in `/etc/sudoers.d/` via `sudo vi /etc/sudoers.d/<filename>`.
 ```
-$ cd /etc/sudoers.d
-$ sudo touch <filename> #<filename> shall not end in '~' or contain '.'
+$ sudo vi /etc/sudoers.d/<filename> #<filename> shall not end in '~' or contain '.'
 ```
-To limit authentication using *sudo* to 3 attempts *(defaults to 3 anyway)* in the event of an incorrect password, add below line to the previously created file via `sudo vi <filename>`:
+To limit authentication using *sudo* to 3 attempts *(defaults to 3 anyway)* in the event of an incorrect password, add below line to the file.
 ```
-$ sudo vi <filename>
-<~~~>
 Defaults        passwd_tries=3
-<~~~>
 ```
 To add a custom error message in the event of an incorrect password:
 ```
@@ -101,7 +96,7 @@ Defaults        badpass_message="<custom-error-message>"
 ###
 To log all *sudo* commands to `/var/log/sudo/<filename>`:
 ```
-$ (cd /var/log && mkdir sudo)
+$ sudo mkdir /var/log/sudo
 <~~~>
 Defaults        logfile="/var/log/sudo/<filename>"
 <~~~>
@@ -140,66 +135,8 @@ ii  openssh-server <...> secure shell (SSH) server, for secure access from remot
 ii  openssh-client <...> secure shell (SSH) sftp server module, for SFTP access from remote machines
 ```
 
-### Step 2: Checking SSH Status
-Check SSH status via `sudo service ssh status`.
-```
-$ sudo service ssh status
-  ssh.service - OpenBSD Secure Shell Server
-   <...>
-   Active: active (running) <...>
-   <...>
-```
->Alternatively, check SSH status via `systemctl status ssh`.
->```
->$ systemctl status ssh
->  ssh.service - OpenBSD Secure Shell Server
->   <...>
->   Active: active (running) <...>
->   <...>
->```
-If you must, switch SSH status to *inactive* via `sudo service ssh stop`.
-```
-$ sudo service ssh stop
-$ sudo service ssh status
-  ssh.service - OpenBSD Secure Shell Server
-   <...>
-   Active: inactive (dead) <...>
-   <...>
-```
-Switch SSH status to *active* again via `sudo service ssh start`.
-```
-$ sudo service ssh start
-$ sudo service ssh status
-  ssh.service - OpenBSD Secure Shell Server
-   <...>
-   Active: active (running) <...>
-   <...>
-```
-If you must, disable SSH via `sudo systemctl disable ssh`.
-```
-$ sudo systemctl disable ssh
-Synchronizing <...>
-Executing: <...>
-$ systemctl status ssh
-  ssh.service - OpenBSD Secure Shell Server
-   Loaded: (/lib/systemd/system/ssh.service; disabled; <...>
-   <...>
-```
-Enable SSH again via `sudo systemctl enable ssh`.
-```
-$ sudo systemctl enable ssh
-Synchronizing <...>
-Executing: <...>
-Created symlink <...>
-<...>
-$ systemctl status ssh
-  ssh.service - OpenBSD Secure Shell Server
-   Loaded: (/lib/systemd/system/ssh.service; enabled; <...>
-   <...>
-```
-
-### Step 3: Configuring SSH
-To configure SSH, edit the file `/etc/login.defs` via `sudo vi /etc/login.defs`, specifically the below line:
+### Step 2: Configuring SSH
+To configure SSH, edit the file `/etc/ssh/sshd_config` via `sudo vi /etc/ssh/sshd_config`, specifically the below lines:
 ```
 $ sudo vi /etc/ssh/sshd_config
 <~~~>
@@ -223,8 +160,24 @@ with:
 ```
 PermitRootLogin no
 ```
+Check SSH status via `sudo service ssh status`.
+```
+$ sudo service ssh status
+  ssh.service - OpenBSD Secure Shell Server
+   <...>
+   Active: active (running) <...>
+   <...>
+```
+>Alternatively, check SSH status via `systemctl status ssh`.
+>```
+>$ systemctl status ssh
+>  ssh.service - OpenBSD Secure Shell Server
+>   <...>
+>   Active: active (running) <...>
+>   <...>
+>```
 
-### Step 4: Installing UFW
+### Step 3: Installing UFW
 Install *ufw* via `sudo apt install ufw`.
 ```
 $ sudo apt install ufw
@@ -237,24 +190,11 @@ $ dpkg -l | grep ufw
 ii  ufw <...> program for managing a Netfilter firewall
 ```
 
-### Step 5: Checking UFW Status
-Check UFW status via `sudo ufw status`.
-```
-$ sudo ufw status
-Status: inactive
-```
-
-### Step 6: Configuring UFW
+### Step 4: Configuring UFW
 Enable the Firewall via `sudo ufw enable`.
 ```
 $ sudo ufw enable
 Firewall is active and enabled on system startup
-```
-Deny all incoming connections by default via `sudo ufw default deny incoming`.
-```
-$ sudo ufw default deny incoming
-Default incoming policy changed to 'deny'
-(be sure to update your rules accordingly)
 ```
 Allow incoming connections using Port 4242 via `sudo ufw allow 4242`.
 ```
@@ -262,18 +202,27 @@ $ sudo ufw allow 4242
 Rule added
 Rule added (v6)
 ```
+Check UFW status via `sudo ufw status`.
+```
+$ sudo ufw status
+Status: active
+To                          Action      From
+--                          ------      ----
+4242                        ALLOW       Anywhere
+4242 (v6)                   ALLOW       Anywhere (v6)
+```
 
-### Step 7: Connecting to Server via SSH
+### Step 5: Connecting to Server via SSH
 On your virtual machine, check internal IP address via `hostname -I`.
 ```shell
 $ hostname -I
 10.0.2.15
 ```
-On your host machine, connect to your virtual machine via SSH using Port 4242 via `ssh <username>@<ip-address> -p 4242`.
+On another device, connect to your virtual machine via SSH using Port 4242 via `ssh <username>@<ip-address> -p 4242`.
 ```
 $ ssh <username>@<ip-address> -p 4242
 <username>@<ip-address>'s password:
-Linux <...>
+Linux <hostname> <...>
 <...>
 Last login: <...>
 $ 
@@ -322,6 +271,12 @@ PASS_MIN_DAYS   2
 ```
 To send *User* a warning message 7 days *(defaults to 7 anyway)* before password expiry, keep below line as is.
 ```
+PASS_WARN_AGE   7
+```
+Finally, it should look like the below:
+```
+PASS_MAX_DAYS   30
+PASS_MIN_DAYS   2
 PASS_WARN_AGE   7
 ```
 
@@ -374,16 +329,19 @@ password        requisite                       pam_pwquality.so retry=3 minlen=
 ```
 
 ### Step 2: Creating A New User
-Create a new *User* via `sudo useradd <username>`.
+Create a new *User* via `sudo adduser <username>`.
 ```
-$ sudo useradd <username>
-```
-Give the newly-created *User* a password via `sudo passwd <username>`.
-```
-$ sudo passwd <username>
+$ sudo adduser <username>
+<...>
 New password:
 Retype new password:
-passwd: password updated successfully
+<...>
+Is the information correct? [Y/n]
+```
+Verify whether *User* was successfully created via `getent passwd <username>`.
+```
+$ getent passwd <username>
+<username>:x:<...>:/bin/bash
 ```
 Check newly-created *User*'s password expiry information via `sudo chage -l <username>`.
 ```
@@ -396,34 +354,22 @@ Minimum number of days between password change		: <PASS_MIN_DAYS>
 Maximum number of days between password change		: <PASS_MAX_DAYS>
 Number of days of warning before password expires	: <PASS_WARN_AGE>
 ```
-If you must, delete a *User* via `sudo userdel <username>`.
-```
-$ sudo userdel <username>
-```
 
 ### Step 3: Creating A New Group
-Create a new *Group* via `sudo groupadd <groupname>`.
+Create a new *user 42 Group* via `sudo groupadd user42`.
 ```
-$ sudo groupadd <groupname>
+$ sudo groupadd user42
 ```
-Add *User* to *Group* via `sudo adduser <username> <groupname>`.
+Add *User* to *user42 Group* via `sudo adduser <username> user42`.
 ```
-$ sudo adduser <username> <groupname>
+$ sudo adduser <username> user42
 ```
->Alternatively, add *User* to *Group* via `sudo usermod -aG <groupname> <username>`.
+>Alternatively, add *User* to *Group* via `sudo usermod -aG user42 <username>`.
 >```
->$ sudo usermod -aG <groupname> <username>
+>$ sudo usermod -aG user42 <username>
 >```
-Verify whether *User* was successfully added to *Group* via `getent group <groupname>`.
+Verify whether *User* was successfully added to *user42 Group* via `getent group user42`.
 ```
-$ getent group <groupname>
-<groupname>:x:1001:<username>
-```
-If you must, remove a *User* from a *Group* via `sudo deluser <username> <groupname>`.
-```
-$ sudo deluser <username> <groupname>
-```
-Again, if you must, delete a *Group* via `sudo groupdel <groupname>`.
-```
-$ sudo groupdel <groupname>
+$ getent group user42
+user42:x:1001:<username>
 ```
