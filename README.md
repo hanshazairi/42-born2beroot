@@ -13,18 +13,19 @@
     - [Step 3: Installing UFW](#step-3-installing-ufw)
     - [Step 4: Configuring UFW](#step-4-configuring-ufw)
     - [Step 5: Connecting to Server via SSH](#step-5-connecting-to-server-via-ssh)
-4. [Users](#users)
+4. [User Management](#user-management)
     - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
        - [Password Strength](#password-strength)
     - [Step 2: Creating A New *User*](#step-2-creating-a-new-user)
     - [Step 3: Creating A New *Group*](#step-3-creating-a-new-group)
 5. [Bonus](#bonus)
-    1. [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#linux-lighttpd-mariadb-php-llmp-stack)
+    - [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#1-linux-lighttpd-mariadb-php-llmp-stack)
         - [Step 1: Installing Lighttpd](#step-1-installing-lighttpd)
-        - [Step 2: Installing MariaDB](#step-2-installing-mariadb)
+        - [Step 2: Installing & Configuring MariaDB](#step-2-installing--configuring-mariadb)
         - [Step 3: Installing PHP](#step-3-installing-php)
-        - [Step 4: Installing WordPress](#step-4-installing-wordpress)
+        - [Step 4: Downloading & Configuring WordPress](#step-4-downloading--configuring-wordpress)
+        - [Step 5: Configuring Lighttpd](#step-5-configuring-lighttpd)
 
 ## Installation
 At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch my *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
@@ -245,7 +246,7 @@ Connection to <ip-address> closed.
 >Connection to <ip-address> closed.
 >```
 
-## Users
+## User Management
 
 ### Step 1: Setting Up A Strong Password Policy
 
@@ -384,95 +385,69 @@ user42:x:1001:<username>
 
 ## Bonus
 
-### Linux Lighttpd MariaDB PHP *(LLMP)* Stack
+### #1: Linux Lighttpd MariaDB PHP *(LLMP)* Stack
 
 #### Step 1: Installing Lighttpd
 Install *lighttpd* via `sudo apt install lighttpd`.
 ```
 $ sudo apt install lighttpd
-Reading package lists... Done
-<...>
 ```
 Verify whether *lighttpd* was successfully installed via `dpkg -l | grep lighttpd`.
 ```
 $ dpkg -l | grep lighttpd
-ii  lighttpd <...> fast webserver with minimal memory footprint
-ii  lighttpd-modules-ldap <...> LDAP-based modules for lighttpd
-ii  lighttpd-modules-mysql <...> MYSQL-based modules for lighttpd
+```
+Allow incoming connections using Port 80 via `sudo ufw allow 80`.
+```
+$ sudo ufw allow 80
 ```
 
-#### Step 2: Installing MariaDB
+#### Step 2: Installing & Configuring MariaDB
 Install *mariadb-server* via `sudo apt install mariadb-server`.
 ```
 $ sudo apt install mariadb-server
-Reading package lists... Done
-<...>
 ```
 Verify whether *mariadb-server* was successfully installed via `dpkg -l | grep mariadb-server`.
 ```
 $ dpkg -l | grep mariadb-server
-ii  libmariadb3:amd64 <...> MariaDB Database client library
-ii  mariadb-client-10.3 <...> MariaDB Database client binaries
-ii  mariadb-client-core-10.3 <...> MariaDB Database core client binaries
-ii  mariadb-common <...> MariaDB common metapackage
-ii  mariadb-server <...> MariaDB database server (metapackage depending on the latest version)
-ii  mariadb-server-10.3 <...> MariaDB database server binaries
-ii  mariadb-server-core-10.3 <...> MariaDB database core server files
 ```
 Start interactive script to remove insecure default settings via `sudo mysql_secure_installation`.
 ```
 $ sudo mysql_secure_installation
-<...>
-Enter current password for root (enter for none): #Just press enter (do not confuse database root with system root)
-<...>
+Enter current password for root (enter for none): #Just press Enter (do not confuse database root with system root)
 Set root password? [Y/n] n
-<...>
 Remove anonymous users? [Y/n] Y
-<...>
 Disallow root login remotely? [Y/n] Y
-<...>
 Remove test database and access to it? [Y/n] Y
-<...>
 Reload privilege tables now? [Y/n] Y
-<...>
-Thanks for using MariaDB!
 ```
 Log in to the MariaDB console via `sudo mariadb`.
 ```
 $ sudo mariadb
-Welcome to the MariaDB monitor.  Commands end with ; or \g.
-<...>
 MariaDB [(none)]>
 ```
-Create a new database via `CREATE DATABASE <database-name>`;.
+Create a new database via `CREATE DATABASE <database-name>;`.
 ```
 MariaDB [(none)]> CREATE DATABASE <database-name>;
-Query OK, 1 row affected (0.000 sec)
 ```
-Create a new *User* and grant them full privileges on the above-created *Database* via `GRANT ALL ON <database-name>.* TO '<username>'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;`.
+Create a new database user and grant them full privileges on the newly-created database via `GRANT ALL ON <database-name>.* TO '<username-2>'@'localhost' IDENTIFIED BY '<password-2>' WITH GRANT OPTION;`.
 ```
-MariaDB [(none)]> GRANT ALL ON <database-name>.* TO '<username>'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;
-Query OK, 0 rows affected (0.000 sec)
+MariaDB [(none)]> GRANT ALL ON <database-name>.* TO '<username-2>'@'localhost' IDENTIFIED BY '<password-2>' WITH GRANT OPTION;
 ```
 Flush the privileges via `FLUSH PRIVILEGES;`.
 ```
 MariaDB [(none)]> FLUSH PRIVILEGES;
-Query OK, 0 rows affected (0.000 sec)
 ```
 Exit the MariaDB shell via `exit`.
 ```
 MariaDB [(none)]> exit
-Bye
 ```
-Verify whether *User* was successfully created by logging in to the MariaDB console via `mariadb -u <username> -p`.
+Verify whether database user was successfully created by logging in to the MariaDB console via `mariadb -u <username-2> -p`.
 ```
-$ mariadb -u <username> -p
-Enter password:
-Welcome to the MariaDB monitor.  Commands end with ; or \g.
-<...>
+$ mariadb -u <username-2> -p
+Enter password: <password-2>
 MariaDB [(none)]>
 ```
-Confirm whether *User* has access to the `<database-name>` database via `SHOW DATABASES;`.
+Confirm whether database user has access to the database via `SHOW DATABASES;`.
 ```
 MariaDB [(none)]> SHOW DATABASES;
 +--------------------+
@@ -481,83 +456,72 @@ MariaDB [(none)]> SHOW DATABASES;
 | <database-name>    |
 | information_schema |
 +--------------------+
-2 rows in set (0.000 sec)
 ```
 Exit the MariaDB shell via `exit`.
 ```
 MariaDB [(none)]> exit
-Bye
 ```
 
 #### Step 3: Installing PHP
-Install *php-cgi* via `sudo apt install php-cgi php-mysql`.
+Install *php-cgi* & *php-mysql* via `sudo apt install php-cgi php-mysql`.
 ```
 $ sudo apt install php-cgi php-mysql
-Reading package lists... Done
-<...>
 ```
-Verify whether *php-cgi* was successfully installed via `dpkg -l | grep php`.
+Verify whether *php-cgi* & *php-mysql* was successfully installed via `dpkg -l | grep php`.
 ```
 $ dpkg -l | grep php
-ii  php-cgi <...> server-side, HTML-embedded scripting language (CGI binary) (default)
-ii  php-common <...> Common files for PHP packages
-ii  php-mysql <...> MySQL module for PHP [default]
-ii  php7.3-cgi <...> server-side, HTML-embedded scripting language (CGI binary)
-ii  php7.3-cli <...> command-line interpreter for the PHP scripting language
-ii  php7.3-common <...> documentation, examples and common module for PHP
-ii  php7.3-json <...> JSON module for PHP
-ii  php7.3-mysql <...> MySQL module for PHP
-ii  php7.3-opcache <...> Zend OpCache module for PHP
-ii  php7.3-readline <...> readline module for PHP
-```
-Enable below modules via `sudo lighty-enable-mod fastcgi && sudo lighty-enable-mod fastcgi-php`.
-```
-$ sudo lighty-enable-mod fastcgi
-Enabling fastcgi: ok
-Run "service lighttpd force-reload" to enable changes
-$ sudo lighty-enable-mod fastcgi-php
-Enabling fastcgi-php: ok
-Run "service lighttpd force-reload" to enable changes
 ```
 
-#### Step 4: Installing WordPress
-Firstly, to download WordPress, install *wget* via `sudo apt install wget`.
+#### Step 4: Downloading & Configuring WordPress
+Install *wget* via `sudo apt install wget`.
 ```
 $ sudo apt install wget
-Reading package lists... Done
-<...>
 ```
-Download WordPress to `/var/www/html/` via `cd /var/www/html && wget http://wordpress.org/latest.tar.gz`.
+Download WordPress to `/var/www/html` via `sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html`.
 ```
-$ cd /var/www/html
-$ wget http://wordpress.org/latest.tar.gz
-<...>
-<...> - 'latest.tar.gz' saved <...>
+$ sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html
 ```
-Extract the downloaded content via `sudo tar -xzvf latest.tar.gz`.
+Extract downloaded content via `sudo tar -xzvf /var/www/html/latest.tar.gz`.
 ```
-$ sudo tar -xzvf latest.tar.gz
+$ sudo tar -xzvf /var/www/html/latest.tar.gz
 ```
-Remove tarball via `sudo rm -rf latest.tar.gz`.
+Remove tarball via `sudo rm /var/www/html/latest.tar.gz`.
 ```
-$ sudo rm -rf latest.tar.gz
+$ sudo rm /var/www/html/latest.tar.gz
 ```
-Create WordPress configuration file from its sample via `sudo cp wp-config-sample.php wp-config.php`.
+Copy content of `/var/www/html/wordpress` to `/var/www/html` via `sudo cp -r /var/www/html/wordpress/* /var/www/html`.
 ```
-$ sudo cp wp-config-sample.php wp-config.php
+$ sudo cp -r /var/www/html/wordpress/* /var/www/html
 ```
-To configure WordPress to reference the MariaDB database & user created earlier, edit the file `wp-config.php` via `sudo vi wp-config.php`, specifically the below lines:
+Remove `/var/www/html/wordpress` via `sudo rm -rf /var/www/html/wordpress`
 ```
-$ sudo vi wp-config.php
-<~~~>
+$ sudo rm -rf /var/www/html/wordpress
+```
+Create WordPress configuration file from its sample via `sudo cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php`.
+```
+$ sudo cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+```
+Configure WordPress to reference previously-created MariaDB database & user via `sudo vi /var/www/html/wp-config.php`.
+```
+$ sudo vi /var/www/html/wp-config.php
+```
+Replace the below
+```
 define( 'DB_NAME', 'database_name_here' );^M
 define( 'DB_USER', 'username_here' );^M
 define( 'DB_PASSWORD', 'password_here' );^M
-<~~~>
 ```
-Replace the above with:
+with:
 ```
 define( 'DB_NAME', '<database-name>' );^M
-define( 'DB_USER', '<username>' );^M
-define( 'DB_PASSWORD', '<password>' );^M
+define( 'DB_USER', '<username-2>' );^M
+define( 'DB_PASSWORD', '<password-2>' );^M
+```
+
+#### Step 5: Configuring Lighttpd
+Enable below modules via `sudo lighty-enable-mod fastcgi; sudo lighty-enable-mod fastcgi-php; sudo service lighttpd force-reload`.
+```
+$ sudo lighty-enable-mod fastcgi
+$ sudo lighty-enable-mod fastcgi-php
+$ sudo service lighttpd force-reload
 ```
