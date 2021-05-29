@@ -421,6 +421,7 @@ ii  mariadb-server-core-10.3 <...> MariaDB database core server files
 ```
 Start interactive script to remove insecure default settings via `sudo mysql_secure_installation`.
 ```
+$ sudo mysql_secure_installation
 <...>
 Enter current password for root (enter for none): #Just press enter (do not confuse database root with system root)
 <...>
@@ -443,27 +444,27 @@ Welcome to the MariaDB monitor.  Commands end with ; or \g.
 <...>
 MariaDB [(none)]>
 ```
-Create a new database via:
+Create a new database via `CREATE DATABASE <database-name>`;.
 ```
 MariaDB [(none)]> CREATE DATABASE <database-name>;
 Query OK, 1 row affected (0.000 sec)
 ```
-Create a new *User* and grant them full privileges on the above-created *Database* via:
+Create a new *User* and grant them full privileges on the above-created *Database* via `GRANT ALL ON <database-name>.* TO '<username>'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;`.
 ```
 MariaDB [(none)]> GRANT ALL ON <database-name>.* TO '<username>'@'localhost' IDENTIFIED BY 'password' WITH GRANT OPTION;
 Query OK, 0 rows affected (0.000 sec)
 ```
-Flush the privileges via:
+Flush the privileges via `FLUSH PRIVILEGES;`.
 ```
 MariaDB [(none)]> FLUSH PRIVILEGES;
 Query OK, 0 rows affected (0.000 sec)
 ```
-Exit the MariaDB shell via:
+Exit the MariaDB shell via `exit`.
 ```
 MariaDB [(none)]> exit
 Bye
 ```
-Verify whether *User* was successfully created by logging in to the MariaDB console via:
+Verify whether *User* was successfully created by logging in to the MariaDB console via `mariadb -u <username> -p`.
 ```
 $ mariadb -u <username> -p
 Enter password:
@@ -471,7 +472,7 @@ Welcome to the MariaDB monitor.  Commands end with ; or \g.
 <...>
 MariaDB [(none)]>
 ```
-Confirm whether *User* has access to the `<database-name>` *Database* via:
+Confirm whether *User* has access to the `<database-name>` database via `SHOW DATABASES;`.
 ```
 MariaDB [(none)]> SHOW DATABASES;
 +--------------------+
@@ -482,8 +483,81 @@ MariaDB [(none)]> SHOW DATABASES;
 +--------------------+
 2 rows in set (0.000 sec)
 ```
-Exit the MariaDB shell via:
+Exit the MariaDB shell via `exit`.
 ```
 MariaDB [(none)]> exit
 Bye
+```
+
+#### Step 3: Installing PHP
+Install *php-cgi* via `sudo apt install php-cgi php-mysql`.
+```
+$ sudo apt install php-cgi php-mysql
+Reading package lists... Done
+<...>
+```
+Verify whether *php-cgi* was successfully installed via `dpkg -l | grep php`.
+```
+$ dpkg -l | grep php
+ii  php-cgi <...> server-side, HTML-embedded scripting language (CGI binary) (default)
+ii  php-common <...> Common files for PHP packages
+ii  php-mysql <...> MySQL module for PHP [default]
+ii  php7.3-cgi <...> server-side, HTML-embedded scripting language (CGI binary)
+ii  php7.3-cli <...> command-line interpreter for the PHP scripting language
+ii  php7.3-common <...> documentation, examples and common module for PHP
+ii  php7.3-json <...> JSON module for PHP
+ii  php7.3-mysql <...> MySQL module for PHP
+ii  php7.3-opcache <...> Zend OpCache module for PHP
+ii  php7.3-readline <...> readline module for PHP
+```
+Enable below modules via `sudo lighty-enable-mod fastcgi && sudo lighty-enable-mod fastcgi-php`.
+```
+$ sudo lighty-enable-mod fastcgi
+Enabling fastcgi: ok
+Run "service lighttpd force-reload" to enable changes
+$ sudo lighty-enable-mod fastcgi-php
+Enabling fastcgi-php: ok
+Run "service lighttpd force-reload" to enable changes
+```
+
+#### Step 4: Installing WordPress
+Firstly, to download WordPress, install *wget* via `sudo apt install wget`.
+```
+$ sudo apt install wget
+Reading package lists... Done
+<...>
+```
+Download WordPress to `/var/www/html/` via `cd /var/www/html && wget http://wordpress.org/latest.tar.gz`.
+```
+$ cd /var/www/html
+$ wget http://wordpress.org/latest.tar.gz
+<...>
+<...> - 'latest.tar.gz' saved <...>
+```
+Extract the downloaded content via `sudo tar -xzvf latest.tar.gz`.
+```
+$ sudo tar -xzvf latest.tar.gz
+```
+Remove tarball via `sudo rm -rf latest.tar.gz`.
+```
+$ sudo rm -rf latest.tar.gz
+```
+Create WordPress configuration file from its sample via `sudo cp wp-config-sample.php wp-config.php`.
+```
+$ sudo cp wp-config-sample.php wp-config.php
+```
+To configure WordPress to reference the MariaDB database & user created earlier, edit the file `wp-config.php` via `sudo vi wp-config.php`, specifically the below lines:
+```
+$ sudo vi wp-config.php
+<~~~>
+define( 'DB_NAME', 'database_name_here' );^M
+define( 'DB_USER', 'username_here' );^M
+define( 'DB_PASSWORD', 'password_here' );^M
+<~~~>
+```
+Replace the above with:
+```
+define( 'DB_NAME', '<database-name>' );^M
+define( 'DB_USER', '<username>' );^M
+define( 'DB_PASSWORD', '<password>' );^M
 ```
