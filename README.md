@@ -12,18 +12,21 @@
     - [Step 2: Installing & Configuring UFW](#step-2-installing--configuring-ufw)
     - [Step 3: Connecting to Server via SSH](#step-3-connecting-to-server-via-ssh)
 4. [User Management](#user-management)
-    - [Step 1: Setting Up A Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
+    - [Step 1: Setting Up a Strong Password Policy](#step-1-setting-up-a-strong-password-policy)
        - [Password Age](#password-age)
        - [Password Strength](#password-strength)
-    - [Step 2: Creating A New User](#step-2-creating-a-new-user)
-    - [Step 3: Creating A New Group](#step-3-creating-a-new-group)
+    - [Step 2: Creating a New User](#step-2-creating-a-new-user)
+    - [Step 3: Creating a New Group](#step-3-creating-a-new-group)
 5. [Bonus](#bonus)
     - [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#1-linux-lighttpd-mariadb-php-llmp-stack)
-        - [Step 1: Installing Lighttpd](#step-1-installing-lighttpd)
-        - [Step 2: Installing & Configuring MariaDB](#step-2-installing--configuring-mariadb)
-        - [Step 3: Installing PHP](#step-3-installing-php)
-        - [Step 4: Downloading & Configuring WordPress](#step-4-downloading--configuring-wordpress)
-        - [Step 5: Configuring Lighttpd](#step-5-configuring-lighttpd)
+       - [Step 1: Installing Lighttpd](#step-1-installing-lighttpd)
+       - [Step 2: Installing & Configuring MariaDB](#step-2-installing--configuring-mariadb)
+       - [Step 3: Installing PHP](#step-3-installing-php)
+       - [Step 4: Downloading & Configuring WordPress](#step-4-downloading--configuring-wordpress)
+       - [Step 5: Configuring Lighttpd](#step-5-configuring-lighttpd)
+    - [File Transfer Protocol *(FTP)*](#2-file-transfer-protocol-ftp)
+       - [Step 1: Installing & Configuring *vsftpd*](#step-1-installing--configuring-vsftpd)
+       - [Step 2: Adding User to FTP Whitelist](#step-2-adding-user-to-ftp-whitelist)
 
 ## Installation
 At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch my *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
@@ -202,7 +205,7 @@ $ logout
 
 ## User Management
 
-### Step 1: Setting Up A Strong Password Policy
+### Step 1: Setting Up a Strong Password Policy
 
 #### Password Age
 Firstly, set up policies in relation to password age via `sudo vi /etc/login.defs`.
@@ -275,7 +278,7 @@ Finally, it should look like the below:
 password        requisite                       pam_pwquality.so retry=3 minlen=10 ucredit=-1 dcredit=-1 maxrepeat=3 reject_username difok=7 enforce_for_root
 ```
 
-### Step 2: Creating A New User
+### Step 2: Creating a New User
 Create a new user via `sudo adduser <username>`.
 ```
 $ sudo adduser <username>
@@ -297,7 +300,7 @@ Maximum number of days between password change		: <PASS_MAX_DAYS>
 Number of days of warning before password expires	: <PASS_WARN_AGE>
 ```
 
-### Step 3: Creating A New Group
+### Step 3: Creating a New Group
 Create a new *user42* group via `sudo addgroup user42`.
 ```
 $ sudo addgroup user42
@@ -458,3 +461,56 @@ $ sudo lighty-enable-mod fastcgi
 $ sudo lighty-enable-mod fastcgi-php
 $ sudo service lighttpd force-reload
 ```
+
+### #2: File Transfer Protocol *(FTP)*
+
+#### Step 1: Installing & Configuring *vsftpd*
+Install *vsftpd* via `sudo apt install vsftpd`.
+```
+$ sudo apt install vsftpd
+```
+Verify whether *vsftpd* was successfully installed via `dpkg -l | grep vsftpd`.
+```
+$ dpkg -l | grep vsftpd
+```
+Configure *vsftpd* via `sudo vi /etc/vsftpd.conf`.
+```
+$ sudo vi /etc/vsftpd.conf
+```
+Replace content with the below:
+```
+listen=YES
+listen_ipv6=NO
+connect_from_port_20=YES
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+chroot_local_user=YES
+allow_writeable_chroot=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+pam_service_name=vsftpd
+pasv_enable=YES
+pasv_min_port=40000
+pasv_max_port=45000
+userlist_enable=YES
+userlist_file=/etc/vsftpd.userlist
+userlist_deny=NO
+```
+Allow incoming connections using Port 21 via `sudo ufw allow 21`.
+```
+$ sudo ufw allow 21
+```
+
+#### Step 2: Adding User to FTP Whitelist
+Add user to FTP whitelist via `echo <username> | sudo tee -a /etc/vsftpd.userlist`.
+```
+$ echo <username> | sudo tee -a /etc/vsftpd.userlist
+```
+Add user to FTP group via `adduser <username> ftp`.
+```
+# adduser <username> ftp
+```
+>Alternatively, add user to FTP group via `usermod -aG ftp <username>`.
+>```
+># usermod -aG ftp <username>
+>```
