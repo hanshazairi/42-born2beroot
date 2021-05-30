@@ -17,7 +17,9 @@
        - [Password Strength](#password-strength)
     - [Step 2: Creating a New User](#step-2-creating-a-new-user)
     - [Step 3: Creating a New Group](#step-3-creating-a-new-group)
-5. [Bonus](#bonus)
+5. [*cron*](#cron)
+    - [Setting Up a *cron* Job](#setting-up-a-cron-job)
+6. [Bonus](#bonus)
     - [Installation](#1-installation)
     - [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#2-linux-lighttpd-mariadb-php-llmp-stack)
        - [Step 1: Installing Lighttpd](#step-1-installing-lighttpd)
@@ -300,6 +302,26 @@ $ sudo adduser <username> user42
 Verify whether user was successfully added to *user42* group via `getent group user42`.
 ```
 $ getent group user42
+```
+
+## *cron*
+
+### Setting Up a *cron* Job
+Configure *cron* as *root* via `sudo crontab -u root -e`.
+```
+$ sudo crontab -u root -e
+```
+To schedule a shell script to run every 10 minutes, replace below line
+```
+23 # m h  dom mon dow   command
+```
+with:
+```
+23 */10 * * * * sh /path/to/script
+```
+Check *root*'s scheduled *cron* jobs via `sudo crontab -u root -l`.
+```
+$ sudo crontab -u root -l
 ```
 
 ## Bonus
