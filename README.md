@@ -26,7 +26,6 @@
        - [Step 5: Configuring Lighttpd](#step-5-configuring-lighttpd)
     - [File Transfer Protocol *(FTP)*](#2-file-transfer-protocol-ftp)
        - [Step 1: Installing & Configuring *vsftpd*](#step-1-installing--configuring-vsftpd)
-       - [Step 2: Adding User to FTP Whitelist](#step-2-adding-user-to-ftp-whitelist)
 
 ## Installation
 At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch my *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
@@ -465,7 +464,7 @@ $ sudo service lighttpd force-reload
 ### #2: File Transfer Protocol *(FTP)*
 
 #### Step 1: Installing & Configuring *vsftpd*
-Install *vsftpd* via `sudo apt install vsftpd`.
+Install FTP via `sudo apt install vsftpd`.
 ```
 $ sudo apt install vsftpd
 ```
@@ -473,44 +472,40 @@ Verify whether *vsftpd* was successfully installed via `dpkg -l | grep vsftpd`.
 ```
 $ dpkg -l | grep vsftpd
 ```
-Configure *vsftpd* via `sudo vi /etc/vsftpd.conf`.
-```
-$ sudo vi /etc/vsftpd.conf
-```
-Replace content with the below:
-```
-listen=YES
-listen_ipv6=NO
-connect_from_port_20=YES
-anonymous_enable=NO
-local_enable=YES
-write_enable=YES
-chroot_local_user=YES
-allow_writeable_chroot=YES
-secure_chroot_dir=/var/run/vsftpd/empty
-pam_service_name=vsftpd
-pasv_enable=YES
-pasv_min_port=40000
-pasv_max_port=45000
-userlist_enable=YES
-userlist_file=/etc/vsftpd.userlist
-userlist_deny=NO
-```
 Allow incoming connections using Port 21 via `sudo ufw allow 21`.
 ```
 $ sudo ufw allow 21
 ```
-
-#### Step 2: Adding User to FTP Whitelist
-Add user to FTP whitelist via `echo <username> | sudo tee -a /etc/vsftpd.userlist`.
+Configure *vsftpd* via `sudo vi /etc/vsftpd.conf`.
 ```
+$ sudo vi /etc/vsftpd.conf
+```
+To enable any form of FTP write command, uncomment below line:
+```
+31 #write_enable=YES
+```
+To set root folder for FTP-connected user to `/home/<username>/ftp`, add below line:
+```
+$ sudo mkdir /home/<username>/ftp
+$ sudo mkdir /home/<username>/ftp/files
+$ sudo chown nobody:nogroup /home/<username>/ftp
+$ sudo chmod a-w /home/<username>/ftp
+<~~~>
+user_sub_token=$USER
+local_root=/home/$USER/ftp
+<~~~>
+```
+To prevent user from accessing files or using commands outside the directory tree, uncomment below line:
+```
+114 #chroot_local_user=YES
+```
+To whitelist FTP, add below lines:
+```
+$ sudo vi /etc/vsftpd.userlist
 $ echo <username> | sudo tee -a /etc/vsftpd.userlist
+<~~~>
+userlist_enable=YES
+userlist_file=/etc/vsftpd.userlist
+userlist_deny=NO
+<~~~>
 ```
-Add user to FTP group via `adduser <username> ftp`.
-```
-# adduser <username> ftp
-```
->Alternatively, add user to FTP group via `usermod -aG ftp <username>`.
->```
-># usermod -aG ftp <username>
->```
