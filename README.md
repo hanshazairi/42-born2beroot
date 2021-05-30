@@ -471,7 +471,7 @@ To enable any form of FTP write command, uncomment below line:
 ```
 31 #write_enable=YES
 ```
-To set root folder for FTP-connected user to `/home/<username>/ftp`, add below line:
+To set root folder for FTP-connected user to `/home/<username>/ftp`, add below lines:
 ```
 $ sudo mkdir /home/<username>/ftp
 $ sudo mkdir /home/<username>/ftp/files
