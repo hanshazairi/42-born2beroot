@@ -18,17 +18,19 @@
     - [Step 2: Creating a New User](#step-2-creating-a-new-user)
     - [Step 3: Creating a New Group](#step-3-creating-a-new-group)
 5. [Bonus](#bonus)
-    - [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#1-linux-lighttpd-mariadb-php-llmp-stack)
+    - [Installation](#1-installation)
+    - [Linux Lighttpd MariaDB PHP *(LLMP)* Stack](#2-linux-lighttpd-mariadb-php-llmp-stack)
        - [Step 1: Installing Lighttpd](#step-1-installing-lighttpd)
        - [Step 2: Installing & Configuring MariaDB](#step-2-installing--configuring-mariadb)
        - [Step 3: Installing PHP](#step-3-installing-php)
        - [Step 4: Downloading & Configuring WordPress](#step-4-downloading--configuring-wordpress)
        - [Step 5: Configuring Lighttpd](#step-5-configuring-lighttpd)
-    - [File Transfer Protocol *(FTP)*](#2-file-transfer-protocol-ftp)
-       - [Step 1: Installing & Configuring *vsftpd*](#step-1-installing--configuring-vsftpd)
+    - [File Transfer Protocol *(FTP)*](#3-file-transfer-protocol-ftp)
+       - [Step 1: Installing & Configuring FTP](#step-1-installing--configuring-ftp)
+       - [Step 2: Connecting to Server via FTP](#step-2-connecting-to-server-via-ftp)
 
 ## Installation
-At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch my *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
+At the time of writing, the latest stable version of [Debian](https://www.debian.org) is *Debian 10 Buster*. Watch *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
 
 ## *sudo*
 
@@ -57,7 +59,11 @@ Add user to *sudo* group via `adduser <username> sudo`.
 >```
 ># usermod -aG sudo <username>
 >```
-`reboot` for changes to take effect, then log in and verify via `sudo -v`.
+Verify whether user was successfully added to *sudo* group via `getent group sudo`.
+```
+$ getent group sudo
+```
+`reboot` for changes to take effect, then log in and verify *sudopowers* via `sudo -v`.
 ```
 # reboot
 <--->
@@ -69,11 +75,6 @@ Password: <password>
 $ sudo -v
 [sudo] password for <username>: <password>
 ```
->Alternatively, verify whether user was successfully added to *sudo* group via `getent group sudo`.
->```
->$ getent group sudo
->sudo:x:27:<username>
->```
 
 ### Step 3: Running *root*-Privileged Commands
 From here on out, run *root*-privileged commands via prefix `sudo`. For instance:
@@ -110,14 +111,6 @@ To set *sudo* paths to `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:
 ```
 Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
 ```
-Finally, it should look like the below:
-```
-Defaults        passwd_tries=3
-Defaults        badpass_message="<custom-error-message>"
-Defaults        logfile="/var/log/sudo/<filename>"
-Defaults        requiretty
-Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
-```
 
 ## SSH
 
@@ -136,19 +129,19 @@ $ sudo vi /etc/ssh/sshd_config
 ```
 To set up SSH using Port 4242, replace below line:
 ```
-#Port 22
+13 #Port 22
 ```
 with:
 ```
-Port 4242
+13 Port 4242
 ```
 To disable SSH login as *root* irregardless of authentication mechanism, replace below line
 ```
-#PermitRootLogin prohibit-password
+32 #PermitRootLogin prohibit-password
 ```
 with:
 ```
-PermitRootLogin no
+32 PermitRootLogin no
 ```
 Check SSH status via `sudo service ssh status`.
 ```
@@ -168,7 +161,7 @@ Verify whether *ufw* was successfully installed via `dpkg -l | grep ufw`.
 ```
 $ dpkg -l | grep ufw
 ```
-Enable the Firewall via `sudo ufw enable`.
+Enable Firewall via `sudo ufw enable`.
 ```
 $ sudo ufw enable
 ```
@@ -182,15 +175,9 @@ $ sudo ufw status
 ```
 
 ### Step 3: Connecting to Server via SSH
-On your virtual machine, check internal IP address via `hostname -I`.
-```
-$ hostname -I
-<ip-address>
-```
-On another device, SSH into your virtual machine using Port 4242 via `ssh <username>@<ip-address> -p 4242`.
+SSH into your virtual machine using Port 4242 via `ssh <username>@<ip-address> -p 4242`.
 ```
 $ ssh <username>@<ip-address> -p 4242
-<username>@<ip-address>'s password: <password>
 ```
 Terminate SSH session at any time via `logout`.
 ```
@@ -199,7 +186,6 @@ $ logout
 >Alternatively, terminate SSH session via `exit`.
 >```
 >$ exit
->logout
 >```
 
 ## User Management
@@ -207,29 +193,29 @@ $ logout
 ### Step 1: Setting Up a Strong Password Policy
 
 #### Password Age
-Firstly, set up policies in relation to password age via `sudo vi /etc/login.defs`.
+Configure password age policy via `sudo vi /etc/login.defs`.
 ```
 $ sudo vi /etc/login.defs
 ```
 To set password to expire every 30 days, replace below line
 ```
-PASS_MAX_DAYS   99999
+160 PASS_MAX_DAYS   99999
 ```
 with:
 ```
-PASS_MAX_DAYS   30
+160 PASS_MAX_DAYS   30
 ```
 To set minimum number of days between password changes to 2 days, replace below line
 ```
-PASS_MIN_DAYS   0
+161 PASS_MIN_DAYS   0
 ```
 with:
 ```
-PASS_MIN_DAYS   2
+161 PASS_MIN_DAYS   2
 ```
-To send *User* a warning message 7 days *(defaults to 7 anyway)* before password expiry, keep below line as is.
+To send user a warning message 7 days *(defaults to 7 anyway)* before password expiry, keep below line as is.
 ```
-PASS_WARN_AGE   7
+162 PASS_WARN_AGE   7
 ```
 
 #### Password Strength
@@ -241,11 +227,11 @@ Verify whether *libpam-pwquality* was successfully installed via `dpkg -l | grep
 ```
 $ dpkg -l | grep libpam-pwquality
 ```
-Edit the file `/etc/pam.d/common-password` via `sudo vi /etc/pam.d/common-password`, specifically the below line:
+Configure password strength policy via `sudo vi /etc/pam.d/common-password`, specifically the below line:
 ```
 $ sudo vi /etc/pam.d/common-password
 <~~~>
-password        requisite                       pam_pwquality.so retry=3
+25 password        requisite                       pam_pwquality.so retry=3
 <~~~>
 ```
 To set password minimum length to 10 characters, add below option to the above line.
@@ -278,16 +264,15 @@ password        requisite                       pam_pwquality.so retry=3 minlen=
 ```
 
 ### Step 2: Creating a New User
-Create a new user via `sudo adduser <username>`.
+Create new user via `sudo adduser <username>`.
 ```
 $ sudo adduser <username>
 ```
 Verify whether user was successfully created via `getent passwd <username>`.
 ```
 $ getent passwd <username>
-<username>:x:<...>:/bin/bash
 ```
-Check newly-created user's password expiry information via `sudo chage -l <username>`.
+Verify newly-created user's password expiry information via `sudo chage -l <username>`.
 ```
 $ sudo chage -l <username>
 Last password change					: <last-password-change-date>
@@ -300,7 +285,7 @@ Number of days of warning before password expires	: <PASS_WARN_AGE>
 ```
 
 ### Step 3: Creating a New Group
-Create a new *user42* group via `sudo addgroup user42`.
+Create new *user42* group via `sudo addgroup user42`.
 ```
 $ sudo addgroup user42
 ```
@@ -315,12 +300,14 @@ $ sudo adduser <username> user42
 Verify whether user was successfully added to *user42* group via `getent group user42`.
 ```
 $ getent group user42
-user42:x:1001:<username>
 ```
 
 ## Bonus
 
-### #1: Linux Lighttpd MariaDB PHP *(LLMP)* Stack
+### #1: Installation
+Watch *bonus* installation walkthrough *(no audio)* [here](https://youtu.be/2w-2MX5QrQw).
+
+### #2: Linux Lighttpd MariaDB PHP *(LLMP)* Stack
 
 #### Step 1: Installing Lighttpd
 Install *lighttpd* via `sudo apt install lighttpd`.
@@ -360,11 +347,11 @@ Log in to the MariaDB console via `sudo mariadb`.
 $ sudo mariadb
 MariaDB [(none)]>
 ```
-Create a new database via `CREATE DATABASE <database-name>;`.
+Create new database via `CREATE DATABASE <database-name>;`.
 ```
 MariaDB [(none)]> CREATE DATABASE <database-name>;
 ```
-Create a new database user and grant them full privileges on the newly-created database via `GRANT ALL ON <database-name>.* TO '<username-2>'@'localhost' IDENTIFIED BY '<password-2>' WITH GRANT OPTION;`.
+Create new database user and grant them full privileges on the newly-created database via `GRANT ALL ON <database-name>.* TO '<username-2>'@'localhost' IDENTIFIED BY '<password-2>' WITH GRANT OPTION;`.
 ```
 MariaDB [(none)]> GRANT ALL ON <database-name>.* TO '<username-2>'@'localhost' IDENTIFIED BY '<password-2>' WITH GRANT OPTION;
 ```
@@ -461,9 +448,9 @@ $ sudo lighty-enable-mod fastcgi-php
 $ sudo service lighttpd force-reload
 ```
 
-### #2: File Transfer Protocol *(FTP)*
+### #3: File Transfer Protocol *(FTP)*
 
-#### Step 1: Installing & Configuring *vsftpd*
+#### Step 1: Installing & Configuring FTP
 Install FTP via `sudo apt install vsftpd`.
 ```
 $ sudo apt install vsftpd
@@ -509,3 +496,10 @@ userlist_file=/etc/vsftpd.userlist
 userlist_deny=NO
 <~~~>
 ```
+
+#### Step 2: Connecting to Server via FTP
+FTP into your virtual machine via `ftp <ip-address>`.
+```
+$ ftp <ip-address>
+```
+Terminate FTP session at any time via `CTRL + D`.
