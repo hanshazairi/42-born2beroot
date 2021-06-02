@@ -105,6 +105,11 @@ $ sudo mkdir /var/log/sudo
 Defaults        logfile="/var/log/sudo/<filename>"
 <~~~>
 ```
+To archive all *sudo* inputs & outputs to `/var/log/sudo/`:
+```
+Defaults        log_input,log_output
+Defaults        iolog_dir="/var/log/sudo"
+```
 To require *TTY*:
 ```
 Defaults        requiretty
@@ -451,15 +456,15 @@ $ sudo vi /var/www/html/wp-config.php
 ```
 Replace the below
 ```
-define( 'DB_NAME', 'database_name_here' );^M
-define( 'DB_USER', 'username_here' );^M
-define( 'DB_PASSWORD', 'password_here' );^M
+23 define( 'DB_NAME', 'database_name_here' );^M
+26 define( 'DB_USER', 'username_here' );^M
+29 define( 'DB_PASSWORD', 'password_here' );^M
 ```
 with:
 ```
-define( 'DB_NAME', '<database-name>' );^M
-define( 'DB_USER', '<username-2>' );^M
-define( 'DB_PASSWORD', '<password-2>' );^M
+23 define( 'DB_NAME', '<database-name>' );^M
+26 define( 'DB_USER', '<username-2>' );^M
+29 define( 'DB_PASSWORD', '<password-2>' );^M
 ```
 
 #### Step 5: Configuring Lighttpd
